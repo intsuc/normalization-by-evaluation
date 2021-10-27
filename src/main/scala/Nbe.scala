@@ -5,7 +5,7 @@ final class Thunk[A](_a: => A):
 
   def get: A = a
 
-final class Sym private (id: Int)
+final case class Sym private (id: Int)
 
 object Sym:
   private var id: Int = 0
