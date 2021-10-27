@@ -39,7 +39,7 @@ def freeVars(using env: Env): Exp => Vars =
   case Exp.App(operator, operand)     => freeVars(operator) ++ freeVars(operand)
   case Exp.Fun(key, domain, codomain) => freeVars(domain) ++ freeVars(codomain) - key
   case Exp.Typ                        => Set.empty
-  case Exp.Ann(annotated, _)          => freeVars(annotated)
+  case Exp.Ann(annotated, annotation) => freeVars(annotated) ++ freeVars(annotation)
 
 def call(using env: Env)(key: Sym, v: Thunk[Val], e: Exp): Val =
   env(key) = v
