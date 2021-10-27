@@ -33,6 +33,7 @@ enum Val:
 
 type Env = WeakHashMap[Sym, Thunk[Val]]
 
+// TODO: free variables caching?
 def freeVars(using env: Env): Exp => Vars =
   case Exp.Var(key)                   => if env.contains(key) then Set.empty else Set(key)
   case Exp.Abs(key, body)             => freeVars(body) - key
@@ -46,12 +47,12 @@ def call(using env: Env)(key: Sym, v: Thunk[Val], e: Exp): Val =
   eval(e)
 
 def eval(using env: Env): Exp => Val =
-  case Exp.Var(key)                         => env(key).get
-  case Exp @ Exp.Abs(key, body)             => Val.Abs(freeVars(Exp), key, body)
-  case Exp.App(operator, operand)           =>
+  case Exp.Var(key)                       => env(key).get
+  case e @ Exp.Abs(key, body)             => Val.Abs(freeVars(e), key, body)
+  case Exp.App(operator, operand)         =>
     eval(operator) match
       case Val.Abs(_, key, body) => call(key, Thunk(eval(operand)), body)
       case operator              => Val.App(operator, Thunk(eval(operand)))
-  case Exp @ Exp.Fun(key, domain, codomain) => Val.Fun(freeVars(Exp), key, eval(domain), codomain)
-  case Exp.Typ                              => Val.Typ
-  case Exp.Ann(annotated, _)                => eval(annotated)
+  case e @ Exp.Fun(key, domain, codomain) => Val.Fun(freeVars(e), key, eval(domain), codomain)
+  case Exp.Typ                            => Val.Typ
+  case Exp.Ann(annotated, _)              => eval(annotated)
